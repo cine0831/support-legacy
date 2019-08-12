@@ -1,8 +1,8 @@
 ■ How to build Python 3.7 on RedHat release
 
 ※ Requirement
-  - up to gcc 3.4
-  - up to OpenSSL 1.0.x
+  - gcc 3.4 or later
+  - OpenSSL 1.0.1 or later
   
 export CFLAGS="-I/usr/local/openssl_package/1.0.2/include -DOBSOLETE_LINUX_KERNEL"
 export LDFLAGS="-L/usr/local/openssl_package/1.0.2/lib"
