@@ -65,6 +65,35 @@ configure 파일과 configuration 후 생성되는 config.status 파일의 "LIBF
 - configure 파일 : LIBFFI_INCLUDEDIR="/usr/local/library_package/libffi/lib/libffi-3.0.9/include"
 
 
+Q4) Error case - posixmodule 에러로
+Modules/posixmodule.c: In function `os_getxattr_impl':
+Modules/posixmodule.c:10647: `XATTR_SIZE_MAX' undeclared (first use in this function)
+Modules/posixmodule.c:10647: (Each undeclared identifier is reported only once
+Modules/posixmodule.c:10647: for each function it appears in.)
+Modules/posixmodule.c:10647: initializer element is not constant
+Modules/posixmodule.c:10647: (near initialization for `buffer_sizes[1]')
+Modules/posixmodule.c: In function `os_listxattr_impl':
+Modules/posixmodule.c:10813: `XATTR_LIST_MAX' undeclared (first use in this function)
+Modules/posixmodule.c:10813: initializer element is not constant
+Modules/posixmodule.c:10813: (near initialization for `buffer_sizes[1]')
+Modules/posixmodule.c: In function `all_ins':
+Modules/posixmodule.c:12828: `XATTR_SIZE_MAX' undeclared (first use in this function)
+make: *** [Modules/posixmodule.o] Error 1
+
+A4) legacy OS (RedHat 7과 9)에서 /usr/include/linux/limits.h 헤더파일에 XATTR_SIZE_MAX와  XATTR_LIST_MAX 정의되어 있지 않아 발생하는 것이다.
+/usr/include/linux/limits.h
+--- limits.h.orig       2018-06-21 13:25:51.000000000 +0500
++++ limits.h    2018-06-21 09:45:02.000000000 +0500
+@@ -13,6 +13,9 @@
+ #define NAME_MAX         255   /* # chars in a file name */
+ #define PATH_MAX        4096   /* # chars in a path name */
+ #define PIPE_BUF        4096   /* # bytes in atomic write to a pipe */
++#define XATTR_NAME_MAX   255    /* # chars in an extended attribute name */
++#define XATTR_SIZE_MAX 65536    /* size of an extended attribute value (64k) */
++#define XATTR_LIST_MAX 65536    /* size of extended attribute namelist (64k) */
+  
+ #define RTSIG_MAX        32
+
 ※ 찾아본 참조 사이트
 https://bugs.python.org/issue36001
 ㄴ Q3의 이슈로 이슈 해결후 찾아보니 3.7 버전에서 해당 이슈가 발생하는 듯
