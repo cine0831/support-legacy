@@ -1,0 +1,66 @@
+■ How to build Python 3.7 on RedHat 7 / 9(legacy)
+
+※ Requirement
+  - gcc 3.4 or later
+  - OpenSSL 1.0.1 or later
+  - libffi 3.0.9 or later
+
+Build option)  
+export CFLAGS="-I/usr/local/openssl_package/1.0.2/include -DOBSOLETE_LINUX_KERNEL"
+export LDFLAGS="-L/usr/local/openssl_package/1.0.2/lib -L/usr/local/library_package/libffi/lib"
+export CC="/usr/local/gcc34/bin/gcc -m32"
+export CXX="/usr/local/gcc34/bin/g++"
+./configure --prefix=/usr/local/python3.7 --enable-shared --with-system-ffi
+
+
+Q1) Error case - configuration 이후 make 진행시
+Wno-unused-parameter   -I. -I./Include   -fPIC -DPy_BUILD_CORE -o Python/pythonrun.o Python/pythonrun.c
+/usr/local/gcc34/bin/gcc -pthread -c -fno-strict-aliasing -Wsign-compare -DNDEBUG -g -fwrapv -O3 -Wall    -std=c99 -Wextra -Wno-unused-parameter   -I. -I./Include   -fPIC -DPy_BUILD_CORE -o Python/pytime.o Python/pytime.c
+Python/pytime.c: In function `pymonotonic':
+Python/pytime.c:886: error: `CLOCK_MONOTONIC' undeclared (first use in this function)
+Python/pytime.c:886: error: (Each undeclared identifier is reported only once
+Python/pytime.c:886: error: for each function it appears in.)
+make: *** [Python/pytime.o] Error
+
+A1) UNIX에서 사용하는 함수와 관련한 에러로 LINUX 사용시 필요가 없는 CLOCK_MONOTONIC 함수이기에 pytime.c에서 해당 부분을 주석처리 하면 해결됨.
+$HOME-Python_source/Python/pytime.c
+--- pytime.c.bak        Fri Aug  9 09:03:58 2019
++++ pytime.c    Fri Aug  9 09:05:25 2019
+@@ -857,6 +857,7 @@
+                          (_PyTime_t)timebase.numer,
+                          (_PyTime_t)timebase.denom);
+ 
++/*
+ #elif defined(__hpux)
+     hrtime_t time;
+ 
+@@ -911,6 +912,7 @@
+     if (pytime_fromtimespec(tp, &ts, raise) < 0) {
+         return -1;
+     }
++*/
+ 
+ #endif
+     return 0;
+
+
+Q2) Error case - configuration 이후 make 진행시
+/usr/local/gcc34/bin/gcc -m32 -pthread -fno-strict-aliasing -Wsign-compare -DNDEBUG -g  -O3 -Wall -I/usr/local/openssl_package/1.0.2/include -DOBSOLETE_LINUX_KERNEL -I/usr/local/openssl_package/1.0.2/include -DOBSOLETE_LINUX_KERNEL  -std=c99 -Wextra -Wno-unused-parameter   -I. -I./Include   -fPIC -DPy_BUILD_CORE_BUILTIN  -DPy_BUILD_CORE -c ./Modules/posixmodule.c -o Modules/posixmodule.o
+In file included from ./Modules/posixmodule.c:97:
+/usr/include/sys/sendfile.h:26:3: #error "<sys/sendfile.h> cannot be used with _FILE_OFFSET_BITS=64"
+
+A2) 32bit 
+$HOME-Python_source/configure
+- use_lfs=yes
++ use_lfs=no
+
+
+Q3) Error case - configuration 이후 make 진행시
+Failed to build these modules:
+_ctypes  
+
+A3) ctypes는 파이썬용 외부 함수 라이브러리로 C로 생성된 외부 라이브러리로 부터 함수를 이용하기 위해 파이썬 build시 기본적으로 생성되는 모듈이나 legacy OS 환경에서 libffi(https://sourceware.org/libffi/) 라이브러리가 설치되지 않아 ctypes 모듈이 빌드되지 않아 발생하는 이슈임
+configure 파일과 configuration 후 생성되는 config.status 파일의 "LIBFFI_INCLUDEDIR"에 ffi.h 와 ffitarget.h 파일이 위치하는 PATH를 기재하면 이슈가 해결됨.
+- config.status 파일 : S["LIBFFI_INCLUDEDIR"]="/usr/local/library_package/libffi/lib/libffi-3.0.9/include"
+- configure 파일 : LIBFFI_INCLUDEDIR="/usr/local/library_package/libffi/lib/libffi-3.0.9/include"
+
