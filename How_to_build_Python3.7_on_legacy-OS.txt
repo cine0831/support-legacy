@@ -1,4 +1,4 @@
-■ How to build Python 3.7 on RedHat-7 and RedHat-9 for (legacy)
+■ How to build Python 3.6/3.7 on RedHat_7 (Enigma) and RedHat_9 (shrike)
 
 ※ Requirement
   - gcc 3.0.x or later
@@ -7,11 +7,10 @@
 
 Build option)  
 export CFLAGS="-I/usr/local/openssl_package/1.0.2/include -DOBSOLETE_LINUX_KERNEL"
-export LDFLAGS="-L/usr/local/openssl_package/1.0.2/lib -L/usr/local/library_package/libffi/lib"
-export CC="/usr/local/gcc34/bin/gcc -m32"
-export CXX="/usr/local/gcc34/bin/g++"
+export LDFLAGS="-L/usr/local/openssl_package/1.0.2/lib -Wl,-V"
+#export CC="/usr/local/gcc34/bin/gcc -m32"
+#export CXX="/usr/local/gcc34/bin/g++"
 ./configure --prefix=/usr/local/python3.7 --enable-shared --with-system-ffi
-
 
 Q1) Error case - configuration 이후 make 진행시
 Wno-unused-parameter   -I. -I./Include   -fPIC -DPy_BUILD_CORE -o Python/pythonrun.o Python/pythonrun.c
@@ -71,8 +70,17 @@ _ctypes
 
 A3) ctypes는 파이썬용 외부 함수 라이브러리로 C로 생성된 외부 라이브러리로 부터 함수를 이용하기 위해 파이썬 build시 기본적으로 생성되는 모듈이나 legacy OS 환경에서 libffi(https://sourceware.org/libffi/) 라이브러리가 설치되지 않아 ctypes 모듈이 빌드되지 않아 발생하는 이슈임
 configure 파일과 configuration 후 생성되는 config.status 파일의 "LIBFFI_INCLUDEDIR"에 ffi.h 와 ffitarget.h 파일이 위치하는 PATH를 기재하면 이슈가 해결됨.
-- config.status 파일 : S["LIBFFI_INCLUDEDIR"]="/usr/local/library_package/libffi/lib/libffi-3.0.9/include"
-- configure 파일 : LIBFFI_INCLUDEDIR="/usr/local/library_package/libffi/lib/libffi-3.0.9/include"
+- symbolic 링크 : 
+   ln -s /usr/local/library_package/libffi/lib/libffi/libffi.a /usr/lib/
+   ln -s /usr/local/library_package/libffi/lib/libffi/libffi.la /usr/lib/
+   ln -s /usr/local/library_package/libffi/lib/libffi/libffi.so /usr/lib/
+   ln -s /usr/local/library_package/libffi/lib/libffi/libffi.so.5 /usr/lib/
+   ln -s /usr/local/library_package/libffi/lib/libffi/libffi.so.5.0.10 /usr/lib/
+   ln -s /usr/local/library_package/libffi/lib/libffi/libffi.so /usr/lib/
+   ln -s /usr/local/library_package/libffi/lib/libffi/libffi-3.0.9 /usr/lib/libffi-3.0.9
+   ln -s /usr/local/library_package/libffi/lib/libffi/pkgconfig/libffi.pc /usr/lib/pkgconfig/
+- config.status 파일 : S["LIBFFI_INCLUDEDIR"]="/usr/lib/libffi-3.0.9/include"
+- configure 파일 : LIBFFI_INCLUDEDIR="/usr/lib/libffi-3.0.9/include"
 
 
 Q4) Error case - posixmodule 에러로
@@ -90,7 +98,7 @@ Modules/posixmodule.c: In function `all_ins':
 Modules/posixmodule.c:12828: `XATTR_SIZE_MAX' undeclared (first use in this function)
 make: *** [Modules/posixmodule.o] Error 1
 
-A4) legacy OS (RedHat 7과 9)에서 /usr/include/linux/limits.h 헤더파일에 XATTR_SIZE_MAX와  XATTR_LIST_MAX 정의되어 있지 않아 발생하는 것이다.
+A4) legacy OS (RedHat 9)에서 /usr/include/linux/limits.h 헤더파일에 XATTR_SIZE_MAX와  XATTR_LIST_MAX 정의되어 있지 않아 발생하는 것이다.
 /usr/include/linux/limits.h
 --- limits.h.orig       2018-06-21 13:25:51.000000000 +0500
 +++ limits.h    2018-06-21 09:45:02.000000000 +0500
