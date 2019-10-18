@@ -1,7 +1,7 @@
-■ How to build Python 3.7 on RedHat 7 / 9(legacy)
+■ How to build Python 3.7 on RedHat-7 and RedHat-9 for (legacy)
 
 ※ Requirement
-  - gcc 3.4 or later
+  - gcc 3.0.x or later
   - OpenSSL 1.0.1 or later
   - libffi 3.0.9 or later
 
@@ -22,7 +22,7 @@ Python/pytime.c:886: error: (Each undeclared identifier is reported only once
 Python/pytime.c:886: error: for each function it appears in.)
 make: *** [Python/pytime.o] Error
 
-A1) UNIX에서 사용하는 함수와 관련한 에러로 LINUX 사용시 필요가 없는 CLOCK_MONOTONIC 함수이기에 pytime.c에서 해당 부분을 주석처리 하면 해결됨.
+A1-1) UNIX에서 사용하는 함수와 관련한 에러로 LINUX 사용시 필요가 없는 CLOCK_MONOTONIC 함수이기에 pytime.c에서 해당 부분을 주석처리 하면 해결됨.
 $HOME-Python_source/Python/pytime.c
 --- pytime.c.bak        Fri Aug  9 09:03:58 2019
 +++ pytime.c    Fri Aug  9 09:05:25 2019
@@ -43,7 +43,17 @@ $HOME-Python_source/Python/pytime.c
  #endif
      return 0;
 
+또는
 
+A1-2) $HOME-Python_source/Python/pytime.c 파일의 CLOCK_MONOTIC을 CLOCK_REALTIME으로 변경
+    /*const clockid_t clk_id = CLOCK_MONOTONIC;
+    const char *implementation = "clock_gettime(CLOCK_MONOTONIC)";*/
+    const clockid_t clk_id = CLOCK_REALTIME;
+    const char *implementation = "clock_gettime(CLOCK_REALTIME)";
+
+※ 참조링크 : https://sunyzero.tistory.com/161
+
+    
 Q2) Error case - configuration 이후 make 진행시
 /usr/local/gcc34/bin/gcc -m32 -pthread -fno-strict-aliasing -Wsign-compare -DNDEBUG -g  -O3 -Wall -I/usr/local/openssl_package/1.0.2/include -DOBSOLETE_LINUX_KERNEL -I/usr/local/openssl_package/1.0.2/include -DOBSOLETE_LINUX_KERNEL  -std=c99 -Wextra -Wno-unused-parameter   -I. -I./Include   -fPIC -DPy_BUILD_CORE_BUILTIN  -DPy_BUILD_CORE -c ./Modules/posixmodule.c -o Modules/posixmodule.o
 In file included from ./Modules/posixmodule.c:97:
