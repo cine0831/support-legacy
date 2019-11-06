@@ -1,5 +1,5 @@
 # support-legacy
-support everything(patch, build or etc) for legacy platfform
+support everything(patch, build or etc) for legacy platform
 
 
 ## 1) How_to_build_Python3.6_on_RedHat-release-9.pdf 내용추가
